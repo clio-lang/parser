@@ -54,27 +54,37 @@ const filterWhites = tokens => {
   return tokens
 }
 
+const flowTokens = ['pipe', 'map', 'set']
+
 const insertIndents = tokens => {
-  const result = [tokens[0]]
-  const zipped = zipSelf(tokens)
+  const result = tokens.slice(0, 1)
   let indentLevel = 0
-  for (const [left, right] of zipped) {
-    if (left.name == 'newline' && right.name == 'space') {
-      const dent = indentLevel > right.raw.length ? 'dedent' : 'indent'
-      const token = { name: dent, raw: dent, index: right.index }
-      result.push(token)
-      indentLevel = right.raw.length
-    } else if (left.name == 'newline' && right.name != 'space') {
-      const token = { name: 'dedent', raw: 'dedent', index: right.index }
-      result.push(token)
+  let indentCount = 0
+  for (const index in tokens.slice(0, -2)) {
+    const [left, middle, right] = tokens.slice(index, index + 3)
+    if (left.name == 'newline' && middle.name == 'space' && middle.raw.length != indentLevel) {
+      const dent = indentLevel > middle.raw.length ? 'dedent' : 'indent'
+      if (dent != 'indent' || !flowTokens.includes(right.name)) {
+        const token = { name: dent, raw: dent, index: middle.index }
+        result.push(token)
+        indentLevel = middle.raw.length
+        indentCount += dent == 'indent' ? 1 : -1
+      }
+    } else if (left.name == 'newline' && middle.name != 'space' && indentLevel > 0) {
+      do {
+        const token = { name: 'dedent', raw: 'dedent', index: middle.index }
+        result.push(token)
+      }
+      while (--indentCount)
       indentLevel = 0
     }
-    result.push(right)
+    result.push(middle)
   }
+  result.push(tokens.pop())
   return result
 }
 
-const insertExtras = tokens => {
+const insertSlicers = tokens => {
   const result = [tokens[0]]
   const zipped = zipSelf(tokens)
   for (const [left, right] of zipped) {
@@ -83,6 +93,29 @@ const insertExtras = tokens => {
       result.push(token)
     }
     result.push(right)
+  }
+  return result
+}
+
+const pipes = ['map', 'pipe']
+const flowEnd = { name: 'flow_end', raw: 'flow_end' }
+const flowEnders = ['newline', 'set']
+
+const insertFlowEnds = tokens => {
+  const result = []
+  let isFlow = false
+  for (const token of tokens) {
+    const { name, index } = token
+    if (pipes.includes(name)) {
+      if (isFlow) result.push({ ...flowEnd, index })
+      isFlow = true
+    } else if (flowEnders.includes(name) && isFlow) {
+      isFlow = false
+      result.push({ ...flowEnd, index })
+    } else if ('colon' == name) {
+      isFlow = false
+    }
+    result.push(token)
   }
   return result
 }
@@ -104,7 +137,8 @@ const lexer = string =>
     .then(removeComments)
     .then(filterWhites)
     .then(insertIndents)
-    .then(insertExtras)
+    .then(insertSlicers)
+    .then(insertFlowEnds)
     .then(removeWhites)
 
 module.exports = lexer;

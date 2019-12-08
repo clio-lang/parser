@@ -1,4 +1,18 @@
+fn test a b:
+  fn another c:
+    a + b + c
+  another
+
 fn foo a b:
   a ^ 2 + 4 * b
 
+1 -> add 2 => myVar
+
 [1 2 3]
+  -> * pow 2
+  -> * n: n * 2
+  -> * n:
+    n + 4 => temp
+    temp * 99
+  -> * add 1
+  => final

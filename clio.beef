@@ -12,13 +12,7 @@ math_priority_two_start number|math|symbol => math { lhs: left.lhs, op: left.op,
 number|math|symbol math_priority_three => math_priority_three_start { lhs: left, op: right.raw }
 math_priority_three_start number|math|symbol => math { lhs: left.lhs, op: left.op, rhs: right }
 
-// 2. Blocks
-
-indent math|number|symbol => block_start { body: [ right ] }
-block_start math|number|symbol => block_start { body: [ ...left.body, right ] }
-block_start dedent => block { body: left.body }
-
-// 3. Functions
+// 2. Functions
 
 fn symbol => function_start { fn: right.raw, parameters: [] }
 function_start symbol => function_middle { fn: left.fn, parameters: [ right.raw ] }
@@ -26,8 +20,34 @@ function_middle symbol => function_middle { fn: left.fn, parameters: [ ...left.p
 function_middle colon => function_end { fn: left.fn, parameters: left.parameters }
 function_end block => function { fn: left.fn, parameters: left.parameters, body: right }
 
+// 3. Anonymous functions
+
+symbol colon => anonymous_function_start { parameter: left.raw }
+anonymous_function_start block|math|number|array => anonymous_function { parameter: left.parameter, body: right }
+
 // 4. Arrays
 
 lbra number|symbol|array => array_start { items: [right] }
 array_start number|symbol|array => array_start { items: [...left.items, right] }
 array_start rbra => array { items: [...left.items] }
+
+// 5. Flows
+
+map anonymous_function => function_call { fn: right, args: [], map: true }
+pipe anonymous_function => function_call { fn: right, args: [], map: false }
+
+map symbol => function_call_start { fn: right, args: [], map: true }
+pipe symbol => function_call_start { fn: right, args: [], map: false }
+set symbol => set_var { variable: right.raw }
+
+function_call_start symbol|number|array => function_call_start { fn: left.fn, args: [ ...left.args, right ] }
+function_call_start flow_end => function_call { fn: left.fn, args: left.args }
+
+number|array|math function_call|set_var => flow { data: left, calls: [right] }
+flow function_call|set_var => flow { data: left.data, calls: [...left.calls, right]}
+
+// 6. Blocks
+
+indent math|number|symbol|function|flow => block_start { body: [ right ] }
+block_start math|number|symbol|function|flow => block_start { body: [ ...left.body, right ] }
+block_start dedent => block { body: left.body }
