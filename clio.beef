@@ -1,0 +1,27 @@
+// 1. Mathematics
+
+// 1.1. pow
+number|math|symbol math_priority_one => math_priority_one_start { lhs: left, op: right.raw }
+math_priority_one_start number|math|symbol => math { lhs: left.lhs, op: left.op, rhs: right }
+
+// 1.2. mul, div
+number|math|symbol math_priority_two => math_priority_two_start { lhs: left, op: right.raw }
+math_priority_two_start number|math|symbol => math { lhs: left.lhs, op: left.op, rhs: right }
+
+// 1.3. add, sub
+number|math|symbol math_priority_three => math_priority_three_start { lhs: left, op: right.raw }
+math_priority_three_start number|math|symbol => math { lhs: left.lhs, op: left.op, rhs: right }
+
+// 2. Blocks
+
+indent math|number|symbol => block_start { body: [ right ] }
+block_start math|number|symbol => block_start { body: [ ...left.body, right ] }
+block_start dedent => block { body: left.body }
+
+// 3. Functions
+
+fn symbol => function_start { fn: right.raw, parameters: [] }
+function_start symbol => function_middle { fn: left.fn, parameters: [ right.raw ] }
+function_middle symbol => function_middle { fn: left.fn, parameters: [ ...left.parameters, right.raw ] }
+function_middle colon => function_end { fn: left.fn, parameters: left.parameters }
+function_end block => function { fn: left.fn, parameters: left.parameters, body: right }
