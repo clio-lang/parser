@@ -25,3 +25,9 @@ function_start symbol => function_middle { fn: left.fn, parameters: [ right.raw 
 function_middle symbol => function_middle { fn: left.fn, parameters: [ ...left.parameters, right.raw ] }
 function_middle colon => function_end { fn: left.fn, parameters: left.parameters }
 function_end block => function { fn: left.fn, parameters: left.parameters, body: right }
+
+// 4. Arrays
+
+lbra number|symbol|array => array_start { items: [right] }
+array_start number|symbol|array => array_start { items: [...left.items, right] }
+array_start rbra => array { items: [...left.items] }
