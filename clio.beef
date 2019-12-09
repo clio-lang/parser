@@ -31,7 +31,15 @@ lbra number|symbol|array => array_start { items: [right] }
 array_start number|symbol|array => array_start { items: [...left.items, right] }
 array_start rbra => array { items: [...left.items] }
 
-// 5. Flows
+// 5. @, ~ and ~~
+
+at number => at_arg { index: right }
+
+unpack unpack => double_unpack
+double_unpack symbol => unpack_arg { double: true, arg: right }
+unpack symbol => unpack_arg { double: false, arg: right }
+
+// 6. Flows
 
 map anonymous_function => function_call { fn: right, args: [], map: true }
 pipe anonymous_function => function_call { fn: right, args: [], map: false }
@@ -40,13 +48,13 @@ map symbol => function_call_start { fn: right, args: [], map: true }
 pipe symbol => function_call_start { fn: right, args: [], map: false }
 set symbol => set_var { variable: right.raw }
 
-function_call_start symbol|number|array => function_call_start { fn: left.fn, args: [ ...left.args, right ] }
+function_call_start symbol|number|array|unpack_arg|at_arg => function_call_start { fn: left.fn, args: [ ...left.args, right ] }
 function_call_start flow_end => function_call { fn: left.fn, args: left.args }
 
 number|array|math function_call|set_var => flow { data: left, calls: [right] }
 flow function_call|set_var => flow { data: left.data, calls: [...left.calls, right]}
 
-// 6. Blocks
+// 7. Blocks
 
 indent math|number|symbol|function|flow => block_start { body: [ right ] }
 block_start math|number|symbol|function|flow => block_start { body: [ ...left.body, right ] }

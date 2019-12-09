@@ -141,4 +141,4 @@ const lexer = string =>
     .then(insertFlowEnds)
     .then(removeWhites)
 
-module.exports = lexer;
+module.exports = lexer

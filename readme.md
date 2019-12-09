@@ -11,3 +11,24 @@ This repo hosts the new Clio parser.
 - [ ] Builtins
 - [ ] Tests
 - [ ] Merge into develop
+
+## Parser TODO
+
+- [X] Functions
+- [X] Anonymous functions
+- [X] Set var
+- [X] Flow
+- [X] Arg ref
+- [X] Unpacking
+- [X] Arrays
+- [X] Mathematics
+- [ ] Array math
+- [ ] Comparisons
+- [ ] Logicals
+- [ ] Conditionals
+- [ ] Inline conditionals
+- [ ] Decorators
+- [ ] Transforms
+- [ ] Property access
+- [ ] Slicing
+- [ ] Range
