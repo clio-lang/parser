@@ -27,7 +27,7 @@ This repo hosts the new Clio parser.
 - [ ] Logicals
 - [ ] Conditionals
 - [ ] Inline conditionals
-- [ ] Decorators
+- [X] Decorators
 - [ ] Transforms
 - [ ] Property access
 - [ ] Slicing

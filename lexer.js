@@ -120,6 +120,25 @@ const insertFlowEnds = tokens => {
   return result
 }
 
+const decoratorEnd = { name: 'decorator_end', raw: 'decorator_end' }
+
+const insertDecoratorEnds = tokens => {
+  const result = [tokens[0]]
+  const zipped = zipSelf(tokens)
+  let isDecorator = false
+  for (const [left, right] of zipped) {
+    if (left.name == 'at' && right.name == 'symbol') {
+      isDecorator = true
+    } else if (right.name == 'newline' && isDecorator) {
+      const { index } = right
+      result.push({ ...decoratorEnd, index })
+      isDecorator = false
+    }
+    result.push(right)
+  }
+  return result
+}
+
 const whitespaces = ["space", "newline"]
 
 const removeWhites = tokens =>
@@ -139,6 +158,7 @@ const lexer = string =>
     .then(insertIndents)
     .then(insertSlicers)
     .then(insertFlowEnds)
+    .then(insertDecoratorEnds)
     .then(removeWhites)
 
 module.exports = lexer
