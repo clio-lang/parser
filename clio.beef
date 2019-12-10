@@ -1,71 +1,76 @@
 // 1. Mathematics
 
 // 1.1. pow
-number|math|symbol math_priority_one => math_priority_one_start { lhs: left, op: right.raw }
-math_priority_one_start number|math|symbol => math { lhs: left.lhs, op: left.op, rhs: right }
+number|math|symbol math_priority_one => math_priority_one_start { lhs: left, op: right.raw, index: left.index }
+math_priority_one_start number|math|symbol => math { lhs: left.lhs, op: left.op, rhs: right, index: left.index }
 
 // 1.2. mul, div
-number|math|symbol math_priority_two => math_priority_two_start { lhs: left, op: right.raw }
-math_priority_two_start number|math|symbol => math { lhs: left.lhs, op: left.op, rhs: right }
+number|math|symbol math_priority_two => math_priority_two_start { lhs: left, op: right.raw, index: left.index }
+math_priority_two_start number|math|symbol => math { lhs: left.lhs, op: left.op, rhs: right, index: left.index }
 
 // 1.3. add, sub
-number|math|symbol math_priority_three => math_priority_three_start { lhs: left, op: right.raw }
-math_priority_three_start number|math|symbol => math { lhs: left.lhs, op: left.op, rhs: right }
+number|math|symbol math_priority_three => math_priority_three_start { lhs: left, op: right.raw, index: left.index }
+math_priority_three_start number|math|symbol => math { lhs: left.lhs, op: left.op, rhs: right, index: left.index }
 
 // 2. Functions
 
-fn symbol => function_start { fn: right.raw, parameters: [] }
-function_start symbol => function_middle { fn: left.fn, parameters: [ right.raw ] }
-function_middle symbol => function_middle { fn: left.fn, parameters: [ ...left.parameters, right.raw ] }
-function_middle colon => function_end { fn: left.fn, parameters: left.parameters }
-function_end block => function { fn: left.fn, parameters: left.parameters, body: right }
+fn symbol => function_start { fn: right.raw, parameters: [], index: left.index }
+function_start symbol => function_middle { fn: left.fn, parameters: [ right.raw ], index: left.index }
+function_middle symbol => function_middle { fn: left.fn, parameters: [ ...left.parameters, right.raw ], index: left.index }
+function_middle colon => function_end { fn: left.fn, parameters: left.parameters, index: left.index }
+function_end block => function { fn: left.fn, parameters: left.parameters, body: right, index: left.index }
 
 // 3. Anonymous functions
 
-symbol colon => anonymous_function_start { parameter: left.raw }
-anonymous_function_start block|math|number|array => anonymous_function { parameter: left.parameter, body: right }
+symbol colon => anonymous_function_start { parameter: left.raw, index: left.index }
+anonymous_function_start block|math|number|array => anonymous_function { parameter: left.parameter, body: right, index: left.index }
 
 // 4. Arrays
 
-lbra number|symbol|array => array_start { items: [right] }
-array_start number|symbol|array => array_start { items: [...left.items, right] }
-array_start rbra => array { items: [...left.items] }
+lbra number|symbol|array => array_start { items: [right], index: left.index }
+array_start number|symbol|array => array_start { items: [...left.items, right], index: left.index }
+array_start rbra => array { items: [...left.items], index: left.index }
 
 // 5. Decorators
 
-at symbol => decorator_start { fn: right, args: [] }
-decorator_start symbol|number|array => decorator_start { fn: left.fn, args: [...left.args, right] }
-decorator_start decorator_end => decorator { fn: left.fn, args: left.args }
+at symbol => decorator_start { fn: right, args: [], index: left.index }
+decorator_start symbol|number|array => decorator_start { fn: left.fn, args: [...left.args, right], index: left.index }
+decorator_start decorator_end => decorator { fn: left.fn, args: left.args, index: left.index }
 
 // 6. Decorated function
 
-decorator function|decorated_function => decorated_function { fn: right, decorator: left }
+decorator function|decorated_function => decorated_function { fn: right, decorator: left, index: left.index }
 
 // 7. @, ~ and ~~
 
-at number => at_arg { index: right }
+at number => at_arg { at: right, index: left.index }
 
 unpack unpack => double_unpack
-double_unpack symbol => unpack_arg { double: true, arg: right }
-unpack symbol => unpack_arg { double: false, arg: right }
+double_unpack symbol => unpack_arg { double: true, arg: right, index: left.index }
+unpack symbol => unpack_arg { double: false, arg: right, index: left.index }
 
 // 8. Flows
 
-map anonymous_function => function_call { fn: right, args: [], map: true }
-pipe anonymous_function => function_call { fn: right, args: [], map: false }
+map anonymous_function => function_call { fn: right, args: [], map: true, index: left.index }
+pipe anonymous_function => function_call { fn: right, args: [], map: false, index: left.index }
 
-map symbol => function_call_start { fn: right, args: [], map: true }
-pipe symbol => function_call_start { fn: right, args: [], map: false }
-set symbol => set_var { variable: right.raw }
+map symbol => function_call_start { fn: right, args: [], map: true, index: left.index }
+pipe symbol => function_call_start { fn: right, args: [], map: false, index: left.index }
+set symbol => set_var { variable: right.raw, index: left.index }
 
-function_call_start symbol|number|array|unpack_arg|at_arg => function_call_start { fn: left.fn, args: [ ...left.args, right ] }
-function_call_start flow_end => function_call { fn: left.fn, args: left.args }
+function_call_start symbol|number|array|unpack_arg|at_arg => function_call_start { fn: left.fn, args: [ ...left.args, right ], index: left.index }
+function_call_start flow_end => function_call { fn: left.fn, args: left.args, index: left.index }
 
-number|array|math function_call|set_var => flow { data: left, calls: [right] }
-flow function_call|set_var => flow { data: left.data, calls: [...left.calls, right]}
+number|array|math function_call|set_var => flow { data: left, calls: [right], index: left.index }
+flow function_call|set_var => flow { data: left.data, calls: [...left.calls, right], index: left.index}
 
 // 9. Blocks
 
 indent math|number|symbol|function|flow => block_start { body: [ right ] }
-block_start math|number|symbol|function|flow => block_start { body: [ ...left.body, right ] }
-block_start dedent => block { body: left.body }
+block_start math|number|symbol|function|flow => block_start { body: [ ...left.body, right ], index: left.index }
+block_start dedent => block { body: left.body, index: left.index }
+
+// 10. Program
+
+flow|function|decorated_function clio => clio { expressions: [left, ...right.expressions], index: left.index }
+flow|function|decorated_function eof => clio { expressions: [left], index: left.index }

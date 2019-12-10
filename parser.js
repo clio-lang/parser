@@ -1,15 +1,27 @@
 const { bean, beef } = require('bean-parser')
-// DEBUG
 const fs = require("fs")
 const lexer = require("./lexer.js")
 
-const source = fs.readFileSync("./test.clio", { encoding: "utf8" })
 const clioModel = fs.readFileSync("./clio.beef", { encoding: "utf8" })
 
 const model = beef(clioModel)
 const parse = tokens => bean(model, tokens)
 
-lexer(source).then(parse)
-  .then(results => {
-    console.dir({ results }, { depth: null })
-  })
+const parser = source =>
+  lexer(source)
+    .then(parse)
+    .then(([success, result]) => {
+      if (success) {
+        const cst = result[0]
+        return cst
+      } else {
+        const firstUnmatched = result[0].name
+        const expecting = model.filter(m => m.left == firstUnmatched).map(({ right }) => right)
+        const encountered = result[1].name
+        const { index } = result[1]
+        const ParsingError = `At ${index}: Expecting one of ${expecting.join(', ')} but encountered ${encountered}`
+        throw ParsingError
+      }
+    })
+
+module.exports = { parser, parse }

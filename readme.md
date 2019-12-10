@@ -32,3 +32,4 @@ This repo hosts the new Clio parser.
 - [ ] Property access
 - [ ] Slicing
 - [ ] Range
+- [X] Program
