@@ -19,6 +19,8 @@ const parser = source =>
         const expecting = model.filter(m => m.left == firstUnmatched).map(({ right }) => right)
         const encountered = result[1].name
         const { index } = result[1]
+        console.log({ result });
+
         const ParsingError = `At ${index}: Expecting one of ${expecting.join(', ')} but encountered ${encountered}`
         throw ParsingError
       }

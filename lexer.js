@@ -71,16 +71,22 @@ const insertIndents = tokens => {
         indentCount += dent == 'indent' ? 1 : -1
       }
     } else if (left.name == 'newline' && middle.name != 'space' && indentLevel > 0) {
-      do {
+      while (indentCount) {
         const token = { name: 'dedent', raw: 'dedent', index: middle.index }
         result.push(token)
+        indentCount--
       }
-      while (--indentCount)
       indentLevel = 0
     }
     result.push(middle)
   }
-  result.push(tokens.pop())
+  const eof = tokens.pop()
+  while (indentCount) {
+    const token = { name: 'dedent', raw: 'dedent', index: eof.index }
+    result.push(token)
+    indentCount--
+  }
+  result.push(eof)
   return result
 }
 
