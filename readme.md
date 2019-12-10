@@ -23,9 +23,9 @@ This repo hosts the new Clio parser.
 - [X] Arrays
 - [X] Mathematics
 - [ ] Array math
-- [ ] Comparisons
+- [X] Comparisons
 - [ ] Logicals
-- [ ] Conditionals
+- [X] Conditionals (WIP)
 - [ ] Inline conditionals
 - [X] Decorators
 - [ ] Transforms
