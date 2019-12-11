@@ -19,9 +19,23 @@ number|symbol|comparison cmp => comparison_start { lhs: left, cmp: right.raw, in
 
 // 3. Conditionals
 
+else if => else_if
+
 if comparison|symbol => if_conditional_start { condition: right, index: left.index }
 if_conditional_start colon => if_conditional_start { condition: left.condition, index: left.index }
 if_conditional_start block => if_conditional { condition: left.condition, body: right, index: left.index }
+
+else_if comparison|symbol => else_if_conditional_start { condition: right, index: left.index }
+else_if_conditional_start colon => else_if_conditional_start { condition: left.condition, index: left.index }
+else_if_conditional_start block => else_if_conditional { body: [{ condition: left.condition, body: right, index: left.index }] }
+
+else_if_conditional else_if_conditional => else_if_conditional { body: [...left.body, right.body] }
+if_conditional else_if_conditional => if_else_if_conditional { if_block: left, else_if_block: right, index: left.index }
+
+else colon => else_conditional_start { index: left.index }
+else_conditional_start block => else_conditional { body: right, index: left.index }
+if_conditional else_conditional => if_else_conditional { if_block: left, else_block: right, index: left.index }
+if_else_if_conditional else_conditional => if_else_if_else_conditional { if_block: left.if_block, else_if_block: left.else_if_block, else_block: right, index: left.index }
 
 // 4. Functions
 
@@ -88,3 +102,12 @@ flow|function|decorated_function eof => clio { expressions: [left], index: left.
 
 if_conditional clio => clio { expressions: [left, ...right.expressions], index: left.index }
 if_conditional eof => clio { expressions: [left], index: left.index }
+
+if_else_if_else_conditional clio => clio { expressions: [left, ...right.expressions], index: left.index }
+if_else_if_else_conditional eof => clio { expressions: [left], index: left.index }
+
+if_else_conditional clio => clio { expressions: [left, ...right.expressions], index: left.index }
+if_else_conditional eof => clio { expressions: [left], index: left.index }
+
+if_else_if_conditional clio => clio { expressions: [left, ...right.expressions], index: left.index }
+if_else_if_conditional eof => clio { expressions: [left], index: left.index }

@@ -20,3 +20,7 @@ fn foo a b:
 
 if a > 2:
   'a > 2' -> print
+else if a < 2:
+  'a < 2' -> print
+else:
+  'is 2' -> print
