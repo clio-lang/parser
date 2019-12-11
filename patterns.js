@@ -6,6 +6,7 @@ const patterns = {
   fn: /^fn(?![a-zA-Z_-])/,
   if: /^if(?![a-zA-Z_-])/,
   else: /^else(?![a-zA-Z_-])/,
+  elif: /^elif(?![a-zA-Z_-])/,
   boolean: /^(true|false)(?![a-zA-Z_-])/,
   and: /^and(?![a-zA-Z_-])/,
   or: /^or(?![a-zA-Z_-])/,

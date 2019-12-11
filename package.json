@@ -11,5 +11,8 @@
   "license": "ISC",
   "dependencies": {
     "bean-parser": "^1.0.8"
+  },
+  "devDependencies": {
+    "prettier": "^1.19.1"
   }
 }

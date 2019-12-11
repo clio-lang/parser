@@ -3,7 +3,7 @@ fn test a b:
     a + b + c
   another
 
-@decorator 1 2
+@decor 1 2
 fn foo a b:
   a ^ 2 + 4 * b
 
@@ -20,7 +20,7 @@ fn foo a b:
 
 if a > 2:
   'a > 2' -> print
-else if a < 2:
+elif a < 2:
   'a < 2' -> print
 else:
   'is 2' -> print
