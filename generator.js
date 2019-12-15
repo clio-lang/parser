@@ -1,25 +1,36 @@
 const { parser } = require('./parser')
 
+const template = generated => `
+const { Fn } = require('./internals/functions')
+const { Flow } = require('./internals/flow')
+const { Scope } = require('./internals/scope')
+
+const scope = new Scope(null)
+
+${generated}
+`
+
 const rules = {
   clio(cst, generate) {
     const { body } = cst
     const processedBody = body.map(generate)
-    return processedBody.join(';\n\n')
+    const generated = processedBody.join(';\n\n')
+    return template(generated)
   },
   function(cst, generate) {
     const { fn: name, parameters, body: { body } } = cst
     const processedBody = body.map(generate)
-    return `function ${name} (${parameters.join(', ')}) {
+    return `scope.set("${name}", new Fn(function ${name} (scope, ${parameters.join(', ')}) {
       ${processedBody.join(';\n')}
-    }`
+    }))`
   },
   anonymous_function(cst, generate) {
     const { parameter, body: expr } = cst
     const processedBody = expr.name == 'block' ?
       expr.body.map(generate).join(';\n') : generate(expr)
-    return `function (${parameter}) {
+    return `new Fn(function (scope, ${parameter}) {
       ${processedBody}
-    }`
+    })`
   },
   math(cst, generate) {
     const { lhs, op, rhs } = cst
@@ -30,7 +41,7 @@ const rules = {
   },
   symbol(cst, generate) {
     const { raw } = cst
-    return raw
+    return `scope.get("${raw}")`
   },
   decorated_function(cst, generate) {
     const { fn, decorator } = cst
@@ -38,7 +49,7 @@ const rules = {
     parsedFn = generate(fn)
     const { fn: { raw: name }, args } = decorator
     const parsedArgs = args.map(generate)
-    return `const ${fnName} = ${name}(${parsedFn}, ${parsedArgs.join(', ')})`
+    return `scope.set("${fnName}", ${name}(${parsedFn}, ${parsedArgs.join(', ')}))`
   },
   number(cst, generate) {
     const { raw } = cst
@@ -52,17 +63,17 @@ const rules = {
     const { data, calls } = cst
     const processedData = generate(data)
     const processedCalls = calls.map(generate).join('\n')
-    return `mirror(${processedData})\n` + processedCalls
+    return `new Flow(scope, ${processedData})\n` + processedCalls
   },
   function_call(cst, generate) {
     const { fn, args } = cst
     const processedFn = generate(fn)
     const processedArgs = args.map(generate)
-    return `.then(result => (${processedFn})(result, ${processedArgs.join(', ')}))`
+    return `.pipe(${processedFn}, ${processedArgs.join(', ')})`
   },
   set_var(cst, generate) {
     const { variable } = cst
-    return `.then(result => set("${variable}", scope, result))`
+    return `.set("${variable}")`
   },
   array(cst, generate) {
     const { items } = cst
