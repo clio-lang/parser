@@ -4,8 +4,10 @@ const template = generated => `
 const { Fn } = require('./internals/functions')
 const { Flow } = require('./internals/flow')
 const { Scope } = require('./internals/scope')
+const builtins = require("./internals/builtins")
 
 const scope = new Scope(null)
+scope.extend(builtins)
 
 ${generated}
 `
@@ -66,10 +68,11 @@ const rules = {
     return `new Flow(scope, ${processedData})\n` + processedCalls
   },
   function_call(cst, generate) {
-    const { fn, args } = cst
+    const { fn, args, map } = cst
     const processedFn = generate(fn)
     const processedArgs = args.map(generate)
-    return `.pipe(${processedFn}, ${processedArgs.join(', ')})`
+    const method = map ? '.map' : '.pipe'
+    return `${method}(${processedFn}, ${processedArgs.join(', ')})`
   },
   set_var(cst, generate) {
     const { variable } = cst

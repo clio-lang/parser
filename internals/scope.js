@@ -16,6 +16,9 @@ class Scope {
     this.scope[key] = value
     return value
   }
+  extend(object) {
+    Object.assign(this.scope, object)
+  }
 }
 
 const scope = outerScope => new Scope(outerScope)

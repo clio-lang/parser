@@ -81,8 +81,8 @@ map symbol => function_call_start { fn: right, args: [], map: true, index: left.
 pipe symbol => function_call_start { fn: right, args: [], map: false, index: left.index }
 set symbol => set_var { variable: right.raw, index: left.index }
 
-function_call_start symbol|number|array|unpack_arg|at_arg => function_call_start { fn: left.fn, args: [ ...left.args, right ], index: left.index }
-function_call_start flow_end => function_call { fn: left.fn, args: left.args, index: left.index }
+function_call_start symbol|number|array|unpack_arg|at_arg => function_call_start { fn: left.fn, args: [ ...left.args, right ], index: left.index, map: left.map }
+function_call_start flow_end => function_call { fn: left.fn, args: left.args, index: left.index, map: left.map }
 
 number|array|math|string function_call|set_var => flow { data: left, calls: [right], index: left.index }
 flow function_call|set_var => flow { data: left.data, calls: [...left.calls, right], index: left.index}
