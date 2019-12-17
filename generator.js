@@ -3,6 +3,7 @@ const { parser } = require("./parser");
 const template = generated => `
 const { Fn } = require('./internals/functions')
 const { Flow } = require('./internals/flow')
+const { Lazy } = require('./internals/lazy')
 const { Scope } = require('./internals/scope')
 const { Array } = require('./internals/array')
 const builtins = require('./internals/builtins')
@@ -12,6 +13,15 @@ const scope = new Scope(builtins, null)
 ${generated}
 `;
 
+const implicitReturn = block => {
+  const lastExpr = block[block.length - 1];
+  block[block.length - 1] = {
+    name: "return",
+    expr: lastExpr
+  };
+  return block;
+};
+
 const rules = {
   clio(cst, generate) {
     const { body } = cst;
@@ -19,18 +29,37 @@ const rules = {
     const generated = processedBody.join(";\n\n");
     return template(generated);
   },
+  return(cst, generate) {
+    const { expr } = cst;
+    const { name } = expr;
+    if (name == "if_elif_else_conditional") {
+      expr.if_block.body.body = implicitReturn(expr.if_block.body.body);
+      expr.elif_block.body = expr.elif_block.body.map(block => {
+        block.body.body = implicitReturn(block.body.body);
+        return block;
+      });
+      expr.else_block.body.body = implicitReturn(expr.else_block.body.body);
+      return generate(expr);
+    } else {
+      const processedExpr = generate(expr);
+      return `return ${processedExpr}`;
+    }
+  },
   function(cst, generate) {
     const {
       fn: name,
       parameters,
       body: { body }
     } = cst;
-    const processedBody = body.map(generate);
-    return `scope.set("${name}", new Fn(function ${name} (scope, ${parameters.join(
-      ", "
-    )}) {
-      ${processedBody.join(";\n")}
-    }))`;
+    const processedParams = parameters.map(
+      param => `scope.${param} = ${param}`
+    );
+    const processedBody = implicitReturn(body).map(generate);
+    return `scope.${name} = new Fn(
+      function ${name} (scope, ${parameters.join(", ")}) {
+        ${processedParams.join(";\n")}
+        ${processedBody.join(";\n")}
+      }, scope, Lazy)`;
   },
   anonymous_function(cst, generate) {
     const { parameter, body: expr } = cst;

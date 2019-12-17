@@ -89,8 +89,8 @@ flow function_call|set_var => flow { data: left.data, calls: [...left.calls, rig
 
 // 11. Blocks
 
-indent math|number|symbol|function|flow => block_start { body: [ right ], index: left.index }
-block_start math|number|symbol|function|flow => block_start { body: [ ...left.body, right ], index: left.index }
+indent math|number|symbol|function|flow|if_elif_else_conditional => block_start { body: [ right ], index: left.index }
+block_start math|number|symbol|function|flow|if_elif_else_conditional => block_start { body: [ ...left.body, right ], index: left.index }
 block_start dedent => block { body: left.body, index: left.index }
 
 // 12. Program
