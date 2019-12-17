@@ -10,7 +10,7 @@ class Fn {
     this.type = type
   }
   call(...args) {
-    const scope = new Scope(this.outerScope)
+    const scope = new Scope({}, this.outerScope)
     return new this.type(() => this.fn(scope, ...args))
   }
 }

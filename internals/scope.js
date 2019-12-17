@@ -1,13 +1,27 @@
+/*
+  Allows doing scope.key instead of
+  doing scope.get('key')
+*/
+const proxify = scope => new Proxy(scope, {
+  set(scope, key, value) {
+    return scope.set(key, value)
+  },
+  get(scope, key) {
+    return scope.get(key)
+  }
+})
+
 class Scope {
-  constructor(outerScope) {
+  constructor(initial, outerScope) {
     this.outerScope = outerScope
-    this.scope = {}
+    this.scope = { ...initial }
+    return proxify(this)
   }
   get(key) {
     if (key in this.scope) {
       return this.scope[key]
     } else if (this.outerScope) {
-      return this.outerScope.get(key)
+      return this.outerScope[key]
     } else {
       throw 'Not defined'
     }
@@ -21,6 +35,6 @@ class Scope {
   }
 }
 
-const scope = outerScope => new Scope(outerScope)
+const scope = (initial, outerScope) => new Scope(initial, outerScope)
 
 module.exports = { scope, Scope }

@@ -14,10 +14,8 @@ class Flow {
   }
   map(fn, ...args) {
     const data = this.data.map(item => fn.call(item, ...args))
-    for (const item of data) {
-      if (item instanceof IO) {
-        item.valueOf()
-      }
+    if (data instanceof IO) {
+      data.valueOf()
     }
     return new Flow(this.scope, data)
   }

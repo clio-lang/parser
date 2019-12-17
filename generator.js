@@ -4,10 +4,10 @@ const template = generated => `
 const { Fn } = require('./internals/functions')
 const { Flow } = require('./internals/flow')
 const { Scope } = require('./internals/scope')
-const builtins = require("./internals/builtins")
+const { Array } = require('./internals/array')
+const builtins = require('./internals/builtins')
 
-const scope = new Scope(null)
-scope.extend(builtins)
+const scope = new Scope(builtins, null)
 
 ${generated}
 `
@@ -43,7 +43,7 @@ const rules = {
   },
   symbol(cst, generate) {
     const { raw } = cst
-    return `scope.get("${raw}")`
+    return `scope.${raw}`
   },
   decorated_function(cst, generate) {
     const { fn, decorator } = cst
@@ -51,7 +51,7 @@ const rules = {
     parsedFn = generate(fn)
     const { fn: { raw: name }, args } = decorator
     const parsedArgs = args.map(generate)
-    return `scope.set("${fnName}", ${name}(${parsedFn}, ${parsedArgs.join(', ')}))`
+    return `scope.${fnName} = ${name}(${parsedFn}, ${parsedArgs.join(', ')})`
   },
   number(cst, generate) {
     const { raw } = cst
@@ -81,7 +81,7 @@ const rules = {
   array(cst, generate) {
     const { items } = cst
     const processedItems = items.map(generate)
-    return `[${processedItems.join(', ')}]`
+    return `new Array(${processedItems.join(', ')})`
   },
   comparison(cst, generate) {
     const { lhs, cmp, rhs } = cst
